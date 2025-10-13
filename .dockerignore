@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache
+.venv
+.venv*/
+.env
+.env.*
+
+# Editor/OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Docker files
+Dockerfile
+docker-compose.yaml
+docker-compose.yml
+.dockerignore
+
+# Documentation
+*.md
+README.md
+LICENSE
+docs/
+
+# Logs
+*.log
+
+# Media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg

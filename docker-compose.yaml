@@ -1,0 +1,77 @@
+name: wse-mcp
+services:
+  engine:
+    hostname: wse.docker
+    image: wowza/wowza-streaming-engine:latest-trial
+    env_file:
+      - ./.env
+    ports:
+      - 8087:8087 # REST API
+      - 80:80    # HLS, MPEG-DASH, RTMPT
+      - 443:443  # SSL/TLS
+      - 1935:1935 # RTMP/RTSP
+      - 8089:8089 # Swagger
+
+  manager:
+    hostname: wsem.docker
+    image: wowza/wowza-streaming-engine-manager:latest
+    env_file:
+      - ./.env
+    # Configure common Wowza Streaming Engine Manager ports on the host machine
+    ports:
+      - 8088:8080
+
+  # MCP server (HTTP mode driven by MCP_MODE env var)
+  mcp:
+    profiles: [ "http" ]
+    hostname: mcp.docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - MCP_MODE=http
+    depends_on:
+      - engine
+    ports:
+      - "${MCP_PORT}:${MCP_PORT}"
+
+  # Google ADK Client with Web UI (for http mode connection to MCP server)
+  agent_http:
+    profiles: [ "http" ]
+    hostname: agent_http.docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "cd agents && adk web --host 0.0.0.0 --port ${AGENT_PORT}"
+    env_file:
+      - ./.env
+    volumes:
+      - ./.env:/app/agents/wse_agent/.env:ro
+    environment:
+      - MCP_MODE=http
+    depends_on:
+      - engine
+    ports:
+      - "${AGENT_PORT}:${AGENT_PORT}"
+
+  # Google ADK Client with Web UI (for stdio mode connection to MCP server)
+  # Do not need mcp server running for stdio mode
+  agent_stdio:
+    profiles: [ "stdio" ]
+    hostname: agent_stdio.docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "cd agents && adk web --host 0.0.0.0 --port ${AGENT_PORT}"
+    env_file:
+      - ./.env
+    volumes:
+      - ./.env:/app/agents/wse_agent/.env:ro
+    environment:
+      - MCP_MODE=stdio
+    depends_on:
+      - engine
+    ports:
+      - "${AGENT_PORT}:${AGENT_PORT}"
