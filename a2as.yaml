@@ -1,0 +1,102 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: wowzamediasystems/wowza-streaming-engine-mcp
+    source: https://github.com/wowzamediasystems/wowza-streaming-engine-mcp
+    branch: main
+    commit: "82d89d89"
+    scope: [agents/wse_agent/agent.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T17:00:26Z'
+    url: https://a2as.org/certified/agents/wowzamediasystems/wowza-streaming-engine-mcp
+  signatures:
+    digest: sha256:nMdI9SpRxI1LPM1rOTUGf-TLb9ZAww_K_Fjz-0S2oC8
+    key: ed25519:2lFVE3LdwZ--qBgQeOzVr1s2aLv4bttk6iWBfDEp7EY
+    sig: ed25519:XdKOOWDrBLQUxaJ_ZMmjpZYERGH9BPwhCmYiLUfBE-IcQtMHEYu78sMmOl1l5zM5tVrvwXR7_GOi9dN8kV1eDw
+
+agents:
+  root_agent:
+    type: instance
+    models: [LLM_MODEL_CLOUD]
+    tools: [MCPToolset]
+    mcp: [MCPToolset]
+    params:
+      name: wse_agent
+      description: Wowza Streaming Engine agent that converts natural language prompts into Wowza REST API commands
+      instruction: [You are an expert Wowza Streaming Engine administrator. You help users manage their streaming infrastructure
+          through natural language commands., The available tools are filtered based on the configured flags. Use the tools
+          you have access to for executing Wowza REST API operations., 'Guidelines:', '- When users request actions or data,
+          use the appropriate tools to execute REST API calls', '- Interpret natural language requests and map them to the
+          correct tool operations', '- For general Wowza questions or guidance, answer from your knowledge without tools',
+        '- Present results clearly and suggest next steps when appropriate', '- If an operation fails, explain the error and
+          suggest alternatives', '- Be concise but complete in your responses']
+
+models:
+  LLM_MODEL_CLOUD:
+    type: literal
+    agents: [root_agent]
+
+tools:
+  MCPToolset:
+    type: mcp
+    agents: [root_agent]
+    params:
+      class: MCPToolset
+      mcp_server: MCPToolset
+
+mcp:
+  MCPToolset:
+    type: process
+    agents: [root_agent]
+    params:
+      class: MCPToolset
+      connection_type: StdioConnectionParams
+      connection_variable: connection_params
+      server_params:
+        command: command
+        args: args
+        env: subprocess_env
+
+imports:
+  Agent: google.adk.agents.Agent
+  LiteLlm: google.adk.models.lite_llm.LiteLlm
+  load_dotenv: dotenv.load_dotenv
+  logging: logging
+  MCPToolset: google.adk.tools.mcp_tool.mcp_toolset.MCPToolset
+  os: os
+  StdioConnectionParams: google.adk.tools.mcp_tool.mcp_toolset.StdioConnectionParams
+  StreamableHTTPConnectionParams: google.adk.tools.mcp_tool.mcp_toolset.StreamableHTTPConnectionParams
+
+variables:
+  LLM_MODEL_CLOUD:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
+  MCP_COMMAND:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
+  MCP_KEY:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
+  MCP_MODE:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
+  WSE_FLAGS:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
+  WSE_MCP_URL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.wse_agent.agent]
